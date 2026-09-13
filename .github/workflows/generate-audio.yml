@@ -1,0 +1,83 @@
+name: generate published note audio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/notes/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/generate-audio.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: notes-audio-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.ref == 'refs/heads/main' && vars.NOTES_PUBLICATION_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: restore completed generation stages
+        uses: actions/cache/restore@v5
+        with:
+          path: .notes/generated
+          key: notes-elevenlabs-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            notes-elevenlabs-${{ runner.os }}-
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - run: npm ci
+      - run: npm run check
+      - run: npm run notes:generate -- --upload --manifest .notes/manifest.json
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_MODEL_ID: ${{ vars.ELEVENLABS_MODEL_ID }}
+          ELEVENLABS_SPEED: ${{ vars.ELEVENLABS_SPEED }}
+          ELEVENLABS_VOICE_ID_EN: ${{ vars.ELEVENLABS_VOICE_ID_EN }}
+          ELEVENLABS_VOICE_ID_PT: ${{ vars.ELEVENLABS_VOICE_ID_PT }}
+          ELEVENLABS_VOICE_ID_JA: ${{ vars.ELEVENLABS_VOICE_ID_JA }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          NOTES_BLOB_PREFIX: ${{ vars.NOTES_BLOB_PREFIX }}
+
+      - name: commit manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .notes/manifest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: update note audio manifest"
+
+      - name: push manifest
+        run: |
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: dispatch portfolio notes update
+        if: success()
+        env:
+          PORTFOLIO_DISPATCH_TOKEN: ${{ secrets.PORTFOLIO_DISPATCH_TOKEN }}
+          PORTFOLIO_REPOSITORY: ${{ vars.PORTFOLIO_REPOSITORY }}
+        run: |
+          export NOTES_COMMIT="$(git rev-parse HEAD)"
+          npm run notes:dispatch
+
+      - name: preserve completed generation stages
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: .notes/generated
+          key: notes-elevenlabs-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
