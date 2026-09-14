@@ -59,10 +59,10 @@ working tree, then run:
 
 ```sh
 npm run notes:validate
-npm run notes:generate -- --note starting-is-easy --no-upload
+npm run notes:generate -- --note between-starting-and-shipping --no-upload
 ```
 
-Replace `starting-is-easy` with the note's ID. This command makes one paid ElevenLabs request per missing note/language. It neither uploads media nor changes the public manifest.
+Replace `between-starting-and-shipping` with the note's ID. This command makes one paid ElevenLabs request per missing note/language. It neither uploads media nor changes the public manifest.
 Completed files appear at:
 
 ```text

@@ -10,9 +10,9 @@ never generates new audio.
 
 The current collection contains one note, marked for publication:
 
-- **starting is easy, but putting out there is harder** — [English](content/notes/starting-is-easy/note.md),
-  [Português](content/notes/starting-is-easy/note.pt.md),
-  [日本語](content/notes/starting-is-easy/note.ja.md)
+- **The gap between starting and shipping** — [English](content/notes/between-starting-and-shipping/note.md),
+  [Português](content/notes/between-starting-and-shipping/note.pt.md),
+  [日本語](content/notes/between-starting-and-shipping/note.ja.md)
 
 Draft status controls inclusion in the published manifest. It does not make a
 committed Markdown file private in a public repository.
@@ -54,13 +54,13 @@ their titles, summaries, and text are localized.
 
 Useful commands, run from the repository root:
 
-| Command                                                         | Purpose                                                                                    |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `npm run notes:validate`                                        | Validate all Markdown and translations without contacting services.                        |
-| `npm run check`                                                 | Run TypeScript, mocked tests, and content validation.                                      |
-| `npm run notes:generate -- --note starting-is-easy --no-upload` | Prepare local audio for this note **after** its three files are marked published.          |
-| `npm run notes:generate -- --upload`                            | Publish assets and reconcile the local public manifest. May incur API and storage charges. |
-| `npm run notes:dispatch`                                        | Notify a configured consumer using `NOTES_COMMIT`; does not generate audio.                |
+| Command                                                                      | Purpose                                                                                    |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `npm run notes:validate`                                                     | Validate all Markdown and translations without contacting services.                        |
+| `npm run check`                                                              | Run TypeScript, mocked tests, and content validation.                                      |
+| `npm run notes:generate -- --note between-starting-and-shipping --no-upload` | Prepare local audio for this note **after** its three files are marked published.          |
+| `npm run notes:generate -- --upload`                                         | Publish assets and reconcile the local public manifest. May incur API and storage charges. |
+| `npm run notes:dispatch`                                                     | Notify a configured consumer using `NOTES_COMMIT`; does not generate audio.                |
 
 Generation processes only published notes. The first note is now marked
 published in Markdown; it reaches the public catalog after its audio and
