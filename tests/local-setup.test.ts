@@ -62,14 +62,14 @@ test('local commands load .env, respect exported values and tolerate a missing f
   }
 })
 
-test('generation config defaults to stable narration with configurable voice and pace', () => {
+test('generation config defaults to v3 Natural narration and preserves legacy controls', () => {
   const defaults = readConfig({
     ELEVENLABS_VOICE_ID_EN: 'english',
     ELEVENLABS_VOICE_ID_PT: 'brazilian',
     ELEVENLABS_VOICE_ID_JA: 'japanese',
   })
-  assert.equal(defaults.model, 'eleven_multilingual_v2')
-  assert.equal(defaults.voiceSettings.speed, 0.95)
+  assert.equal(defaults.model, 'eleven_v3')
+  assert.deepEqual(defaults.voiceSettings, { stability: 0.5 })
   assert.deepEqual(defaults.voices, {
     en: 'english',
     pt: 'brazilian',
@@ -77,12 +77,35 @@ test('generation config defaults to stable narration with configurable voice and
   })
   assert.deepEqual(
     readConfig({
+      ELEVENLABS_MODEL_ID: 'eleven_multilingual_v2',
+      ELEVENLABS_SPEED: '0.95',
+    }).voiceSettings,
+    {
+      stability: 0.5,
+      similarity_boost: 0.75,
+      style: 0,
+      use_speaker_boost: true,
+      speed: 0.95,
+    },
+  )
+  assert.deepEqual(
+    readConfig({
+      ELEVENLABS_MODEL_ID: 'eleven_v3',
+      ELEVENLABS_SPEED: '2',
+    }).voiceSettings,
+    { stability: 0.5 },
+  )
+  assert.deepEqual(
+    readConfig({
       ELEVENLABS_VOICE_ID: 'obsolete-default',
       ELEVENLABS_VOICE_ID_PT: 'brazilian',
     }).voices,
     { en: '', pt: 'brazilian', ja: '' },
   )
-  assert.throws(() => readConfig({ ELEVENLABS_SPEED: '2' }), /between 0.7 and 1.2/)
+  assert.throws(
+    () => readConfig({ ELEVENLABS_MODEL_ID: 'eleven_multilingual_v2', ELEVENLABS_SPEED: '2' }),
+    /between 0.7 and 1.2/,
+  )
 })
 
 test('published manifest reuse does not require ElevenLabs credentials', async () => {
