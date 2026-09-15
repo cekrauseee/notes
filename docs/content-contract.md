@@ -14,15 +14,15 @@ currently equals the stable ID. Published entries contain all of `en`, `pt`, and
 
 Each locale records:
 
-| Field                      | Meaning                                                               |
-| -------------------------- | --------------------------------------------------------------------- |
-| `title`, `summary`         | Localized editorial metadata.                                         |
-| `markdownPath`             | Repository-relative source file path.                                 |
-| `markdownSha256`           | SHA-256 of the exact UTF-8 Markdown file, including front matter.     |
-| `spokenTextSha256`         | SHA-256 of the canonical narrated body.                               |
-| `generationConfigHash`     | Content-addressed key for narrated text and effective audio settings. |
-| `audioUrl`, `alignmentUrl` | Public, immutable asset URLs.                                         |
-| `durationMs`               | Duration of the assembled source audio in milliseconds.               |
+| Field                      | Meaning                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------- |
+| `title`, `summary`         | Localized editorial metadata.                                                         |
+| `markdownPath`             | Repository-relative source file path.                                                 |
+| `markdownSha256`           | SHA-256 of the exact UTF-8 Markdown file, including front matter.                     |
+| `spokenTextSha256`         | SHA-256 of the canonical narrated body after recognized audio tags are projected out. |
+| `generationConfigHash`     | Content-addressed key for narrated text and effective audio settings.                 |
+| `audioUrl`, `alignmentUrl` | Public, immutable asset URLs.                                                         |
+| `durationMs`               | Duration of the assembled source audio in milliseconds.                               |
 
 `generatedAt` is a catalog generation timestamp, not a note publication date.
 Consumers should sort explicitly for their interface rather than relying on the
@@ -37,15 +37,20 @@ the same audio key and URLs. Do not require an audio regeneration for that case.
 
 [`src/markdown.ts`](../src/markdown.ts) projects the Markdown AST into canonical
 spoken text. Front matter is excluded. Visible text from headings, emphasis,
-links, code, and image alternatives is retained; raw HTML is rejected. A consumer
-that highlights Markdown must use the same projection and whitespace rules.
+links, code, and image alternatives is retained; raw HTML is rejected. The
+recognized ElevenLabs v3 audio tags remain in the single Markdown source sent to
+the provider, but are projected out of `spokenText` and the rendered Markdown.
+This is a transient projection: the repository does not maintain a second clean
+article or narration source. A consumer that highlights Markdown must use the
+same tag allowlist, projection, and whitespace rules.
 
-One ElevenLabs text-to-speech request returns MP3 and original-text character
-timestamps. The mapper groups characters into `Intl.Segmenter` word units,
-converts seconds to milliseconds, and preserves UTF-16 offsets into the canonical
-source. It uses `alignment`, not `normalized_alignment`, so text normalization
-such as expanded numbers does not replace the display text. There is no separate
-transcription, model correction, audio chunking or encoding step. See
+Each ElevenLabs text-to-speech block request returns MP3 and original-text
+character timestamps. The producer groups characters into `Intl.Segmenter` word
+units, converts seconds to milliseconds, and preserves UTF-16 offsets into the
+canonical source. It uses `alignment`, not `normalized_alignment`, so text
+normalization such as expanded numbers does not replace the display text. When
+the source exceeds the model limit, semantic blocks are assembled from validated
+MP3 frames without re-encoding; v3 request stitching is not used. See
 [publishing](publishing.md#reuse-failure-and-withdrawal) for recovery behavior.
 
 An alignment artifact includes:
@@ -55,12 +60,16 @@ An alignment artifact includes:
 - `noteId`, `locale`, canonical `spokenText`, and `durationMs`.
 - `units`: text with `startChar`, `endChar`, `startMs`, and `endMs`.
 - `chunks`: an empty array retained for the consumer contract.
-- `durationMs`: the last character timestamp extent; playback uses MP3 metadata.
+- `durationMs`: the real assembled MP3 frame timeline; playback uses MP3 metadata.
 
-Character ranges are half-open JavaScript UTF-16 offsets into `spokenText`;
-times are milliseconds on the assembled audio timeline. They are not Markdown
-byte offsets. Characters are grouped into words, including Japanese without whitespace.
-The mapper retains actual API boundaries. Consumers must not invent separate timings for those units.
+Character ranges are half-open JavaScript UTF-16 offsets into the clean
+`spokenText`; times are milliseconds on the assembled audio timeline. They are
+not Markdown byte offsets. Characters are grouped into words, including
+Japanese without whitespace. When the provider returns timestamps against the
+tagged source, the producer maps only spoken characters into these ranges and
+discards tag timing; a clean provider alignment is accepted when it matches the
+same projection. The mapper retains actual API boundaries. Consumers must not
+invent separate timings for tags or for other units.
 
 Validate identity, canonical text, duration bounds, ordering, and complete
 significant-text coverage. Punctuation and whitespace gaps are allowed; missing

@@ -6,6 +6,7 @@ import { readConfig } from '../src/config.js'
 // Updated for the ElevenLabs migration; intentionally not executed during migration.
 test('one ElevenLabs request includes voice settings and returns audio with timestamps', async () => {
   const config = readConfig({
+    ELEVENLABS_MODEL_ID: 'eleven_multilingual_v2',
     ELEVENLABS_VOICE_ID_EN: 'voice-id',
     ELEVENLABS_VOICE_ID_PT: 'voice-id-pt',
     ELEVENLABS_VOICE_ID_JA: 'voice-id-ja',
@@ -45,6 +46,37 @@ test('one ElevenLabs request includes voice settings and returns audio with time
     result,
   )
   assert.equal(calls, 1)
+})
+
+test('Eleven v3 sends tags and only supported voice settings', async () => {
+  const config = readConfig({
+    ELEVENLABS_MODEL_ID: 'eleven_v3',
+    ELEVENLABS_VOICE_ID_EN: 'voice-id',
+  })
+  const provider = createElevenLabsProvider('fixture-key', async (url, init) => {
+    const request = new Request(url, init)
+    assert.deepEqual(await request.json(), {
+      text: '[calm, measured] A',
+      model_id: 'eleven_v3',
+      language_code: 'en',
+      voice_settings: { stability: 0.5 },
+    })
+    return Response.json({
+      audio_base64: 'bXAz',
+      alignment: {
+        characters: ['A'],
+        character_start_times_seconds: [0],
+        character_end_times_seconds: [1],
+      },
+    })
+  })
+  await provider.generateSpeech({
+    text: '[calm, measured] A',
+    locale: 'en',
+    model: config.model,
+    voiceId: config.voices.en,
+    voiceSettings: config.voiceSettings,
+  })
 })
 
 test('retryable ElevenLabs failure is not retried', async () => {

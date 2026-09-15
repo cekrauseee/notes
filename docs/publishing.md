@@ -59,10 +59,10 @@ working tree, then run:
 
 ```sh
 npm run notes:validate
-npm run notes:generate -- --note starting-is-easy --no-upload
+npm run notes:generate -- --note between-starting-and-shipping --no-upload
 ```
 
-Replace `starting-is-easy` with the note's ID. This command makes one paid ElevenLabs request per missing note/language. It neither uploads media nor changes the public manifest.
+Replace `between-starting-and-shipping` with the note's ID. This command makes one paid ElevenLabs request per missing note/language. It neither uploads media nor changes the public manifest.
 Completed files appear at:
 
 ```text
@@ -110,17 +110,16 @@ variable changes do not create a Git push event.
 Configure these settings in the **notes** repository under Settings → Secrets
 and variables → Actions. The portfolio runtime does not need the ElevenLabs key.
 
-| Kind      | Name                                   | Purpose                                                                 |
-| --------- | -------------------------------------- | ----------------------------------------------------------------------- |
-| Variable  | `NOTES_PUBLICATION_ENABLED`            | Set to `true` only when ready to enable paid publication.               |
-| Secret    | `ELEVENLABS_API_KEY`                   | ElevenLabs API key with Text to Speech access and available credits.    |
-| Secret    | `BLOB_READ_WRITE_TOKEN`                | Read/write access to the public Vercel Blob store.                      |
-| Variable  | `ELEVENLABS_MODEL_ID`                  | Optional; defaults to `eleven_multilingual_v2`.                         |
-| Variable  | `ELEVENLABS_SPEED`                     | Optional; defaults to `0.95`, allowed range `0.7`–`1.2`.                |
-| Variables | `ELEVENLABS_VOICE_ID_EN`, `_PT`, `_JA` | Required native voices for English, Brazilian Portuguese, and Japanese. |
-| Variable  | `NOTES_BLOB_PREFIX`                    | Optional asset prefix, default `notes`.                                 |
-| Secret    | `PORTFOLIO_DISPATCH_TOKEN`             | Optional existing portfolio notification token.                         |
-| Variable  | `PORTFOLIO_REPOSITORY`                 | Optional notification target, paired with that token.                   |
+| Kind      | Name                                   | Purpose                                                                             |
+| --------- | -------------------------------------- | ----------------------------------------------------------------------------------- |
+| Variable  | `NOTES_PUBLICATION_ENABLED`            | Set to `true` only when ready to enable paid publication.                           |
+| Secret    | `ELEVENLABS_API_KEY`                   | ElevenLabs API key with Text to Speech access and available credits.                |
+| Secret    | `BLOB_READ_WRITE_TOKEN`                | Read/write access to the public Vercel Blob store.                                  |
+| Variable  | `ELEVENLABS_MODEL_ID`                  | Optional; defaults to `eleven_v3`; supports inline audio tags and 5,000 characters. |
+| Variable  | `ELEVENLABS_SPEED`                     | Used by legacy models only; allowed range `0.7`–`1.2`.                              |
+| Variables | `ELEVENLABS_VOICE_ID_EN`, `_PT`, `_JA` | Required native voices for English, Brazilian Portuguese, and Japanese.             |
+| Variable  | `NOTES_BLOB_PREFIX`                    | Optional asset prefix, default `notes`.                                             |
+| Secret    | `VERCEL_DEPLOY_HOOK_URL`               | Optional Deploy Hook URL for the Portfolio `main` production build.                 |
 
 The implementation calls the current documented
 [`POST /v1/text-to-speech/{voice_id}/with-timestamps`](https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps)
@@ -130,22 +129,24 @@ parameters or extra transcription/LLM calls are used. No new SDK is required.
 
 ### Model and delivery
 
-`eleven_multilingual_v2` is the default for consistent, natural long-form reading
-in English, Brazilian Portuguese and Japanese. It accepts up to 10,000
-characters per request. `eleven_flash_v2_5` is a cheaper alternative with a
-40,000-character limit; `eleven_turbo_v2_5` supports the same limit. Flash can be
-less suitable when number/date normalization matters. Eleven v3 is newer and
-more expressive; it is not part of this deliberately small narration configuration.
-See the official [models guide](https://elevenlabs.io/docs/overview/models).
+`eleven_v3` is the default for expressive, multilingual narration with inline
+audio tags and a 5,000-character request limit. The starting stability is
+`0.5`, the Natural setting. The v3 request does not send speed, similarity
+boost, style, or speaker boost controls; audio tags and punctuation guide
+delivery instead. `ELEVENLABS_SPEED` remains available for the legacy
+`eleven_multilingual_v2`, `eleven_flash_v2_5`, and `eleven_turbo_v2_5`
+models. See the official [models guide](https://elevenlabs.io/docs/overview/models)
+and [text-to-speech guide](https://elevenlabs.io/docs/eleven-creative/playground/text-to-speech).
 
-The initial voice settings are speed `0.95`, stability `0.5`, similarity boost
-`0.75`, style `0`, and speaker boost enabled. These are a starting point, not a
-listening-verified voice. Select a female voice with a natural conversational
-or narrative sample. A native voice must be configured explicitly for each language. Voice identity is independent of the model ID.
+Select a female voice with a natural conversational or narrative sample. A
+voice must be configured explicitly for each language; the generation code keeps
+voice IDs separate from the model so the Japanese voice can remain independent.
 
-Keep original capitalization and paragraph breaks. Delivery comes from the voice,
-settings and punctuation. Do not insert prose instructions into the narration:
-these models would read them aloud. The portfolio applies lowercase using CSS.
+Keep original capitalization and paragraph breaks. The single Markdown source
+also carries its v3 audio tags. Delivery comes from the voice, tags, settings
+and punctuation. Do not insert prose instructions into the narration: these
+models would read them aloud. The portfolio parses and hides recognized tags
+with a transient frontend projection; it does not maintain a second clean source.
 
 The workflow declares `contents: write` so its GitHub token can commit the
 manifest. Repository and organization rules must permit that write; if branch
@@ -161,19 +162,17 @@ it reconciles against the new source revision. There is no force push.
 Manifest-only commits are excluded from the push path filters, preventing a
 generation loop. An unchanged manifest does not create another commit.
 
-## Optional portfolio notification
+## Optional portfolio redeploy
 
-Configure both `PORTFOLIO_DISPATCH_TOKEN` (secret) and `PORTFOLIO_REPOSITORY`
-(variable, for example `cekrauseee/portfolio`), or leave both absent. A fine-grained
-GitHub token needs access to the target repository with `Contents: write` for
-repository dispatch. Keep the token separate from the Blob token.
+Configure `VERCEL_DEPLOY_HOOK_URL` as a secret in the Notes repository when the
+Portfolio should rebuild after a successful publication. Use the Deploy Hook
+for the Portfolio `main` branch. The URL is a credential: do not commit it or
+place it in note content.
 
-After a successful push, the workflow sends `notes-published` with
-`client_payload.notes_commit` containing the pushed HEAD's 40-character lowercase
-SHA. The consumer's workflow must already exist on its default branch. The
-current portfolio validates this event and invokes its existing delivery path;
-its build resolves the configured `NOTES_REF` to a commit. The notification SHA
-is not currently forwarded as a Vercel build override.
+After a successful manifest push, the workflow sends a `POST` request to that
+Deploy Hook. Vercel queues a production build, and the build resolves the
+Portfolio's configured `NOTES_REF` to a commit. No GitHub repository token,
+repository-dispatch event, or commit SHA payload is needed.
 
 In the portfolio build environment, configure:
 
@@ -186,29 +185,42 @@ The portfolio does not need a Blob write token to read public assets. Its existi
 deploy-hook and database configuration still applies. With notification disabled,
 this repository remains usable and consumers can synchronize independently.
 
-To retry only a failed notification, from a checkout of the already-pushed
-revision with the integration configured:
+To retry only a failed redeploy request, from a checkout with the integration
+configured:
 
 ```sh
-NOTES_COMMIT="$(git rev-parse HEAD)" npm run notes:dispatch
+npm run notes:dispatch
 ```
 
-This makes a GitHub request but does not generate or upload audio.
+This makes a Vercel request but does not generate or upload audio.
 
 ## Reuse, failure, and withdrawal
 
-Generation identity includes the spoken text, language, model, voice and voice
-settings. Metadata-only edits reuse the audio. Changing delivery settings creates
-a new generation. Old OpenAI output is left on disk but is not reused as ElevenLabs
-output. Existing published legacy artifacts remain readable by the portfolio.
+Generation identity includes the tagged speech projection derived from the
+Markdown body, normalized spoken text, language, model, voice and supported
+voice settings, plus the semantic block and MP3 assembly versions. Changing an
+audio tag, model, voice, supported setting, or assembly plan creates a new
+generation even when the visible words are unchanged. Metadata-only edits reuse
+the audio because front matter is outside the speech projection. Old OpenAI
+output is left on disk but is not reused as ElevenLabs output. Existing
+published legacy artifacts remain readable by the portfolio.
 
-Each note/language uses one request, without chunking or ffmpeg. Text over the
-model limit fails before that request; shorten it or choose a supported model
-with a larger limit. A successful response is saved as `response.json` alongside
-`audio.mp3` and `alignment.json`. This single recovery file avoids repeating a
-paid call if local writing or publication fails. Invalid responses are removed;
-failures stop immediately without an automatic retry. Run the command again to
-resume missing generations. Completed languages are retained.
+Each note/language is split only when necessary. The splitter keeps paragraphs
+together, groups complete sentences where possible, and falls back to Unicode
+safe word or code-point boundaries when one sentence is too long. Every block
+includes its complete audio tags and stays within the model limit. Each block
+uses one request; Eleven v3 request stitching is not used, so the result should
+be listened to for the naturalness of its boundaries.
+
+Completed block responses are saved under
+`.notes/generated/<id>/<locale>/<generation-hash>/blocks/0000/response.json` and
+the final MP3 and alignment are written only after every block has been decoded,
+validated, and assembled. A one-block generation keeps the legacy root
+`response.json` recovery path. This lets a failed run resume missing blocks
+without repeating completed paid calls. Invalid responses are removed; failures
+stop immediately without an automatic retry. Run the command again to resume.
+A block over the model limit is rejected before its request; the splitter itself
+must never produce an over-limit block.
 
 The workflow saves/restores generated files through GitHub Actions cache, even
 when a later language or upload fails. Cache eviction or a lost API response may
@@ -216,12 +228,15 @@ still require regeneration. A partial remote upload with no local recovery files
 stops with an error: it must not mix a new recording with older timestamps.
 The public manifest advances only after every selected note succeeds.
 
-`alignment` supplies original-text character timestamps. The mapper groups them
-into source words using the first and last character times. It does not infer
-word durations or use `normalized_alignment`, which may contain expanded numbers.
-Artifact `durationMs` is the timestamp extent; the browser uses the actual MP3
-metadata for playback duration. Pronunciation, pauses and timing still need a
-listening check once credentials are available.
+`alignment` supplies character timestamps for each original block request. The
+producer accepts either a response aligned to the tagged request or a response
+aligned to its spoken characters, then maps only real timestamps to clean word
+spans for playback. It does not assign times to audio tags, infer word
+durations, use `normalized_alignment`, or create a second source. Block offsets
+come from the parsed MP3 frame sample counts, including encoded padding; the
+final artifact duration is the assembled MP3 timeline rather than the last word
+timestamp. Pronunciation, pauses and boundaries still need a listening check
+once credentials are available.
 
 If dispatch fails after publication, rerun the notification independently.
 

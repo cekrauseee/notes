@@ -2,7 +2,7 @@ import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import matter from 'gray-matter'
 import { sha256 } from './hash.js'
-import { normalizeForSpeech } from './markdown.js'
+import { normalizeForSpeechProjection } from './markdown.js'
 import { LOCALES, NOTE_STATUSES, type Locale, type Note, type NoteStatus } from './types.js'
 import { logger } from './logger.js'
 
@@ -152,7 +152,7 @@ export async function readNotes(rootDirectory: string): Promise<Note[]> {
       locales: Object.fromEntries(
         LOCALES.map((locale) => {
           const current = localeData[locale]
-          const spokenText = normalizeForSpeech(current.markdownBody, locale)
+          const spokenText = normalizeForSpeechProjection(current.markdownBody, locale).spokenText
           logger.debug(
             {
               locale,

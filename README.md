@@ -4,15 +4,19 @@ A place for thoughts, questions, and things I am still figuring out, written in
 English, Brazilian Portuguese, and Japanese. The Markdown lives here independently
 of the portfolio that presents it.
 
+Each note has one Markdown source per language. Eleven v3 audio tags remain in
+that source for generation; the portfolio parses recognized tags at render time
+so they are not visible or highlighted as spoken text.
+
 Published notes include an AI narration and timed text for synchronized reading.
 Audio is prepared during publication and stored in Vercel Blob; opening a note
 never generates new audio.
 
 The current collection contains one note, marked for publication:
 
-- **starting is easy, but putting out there is harder** — [English](content/notes/starting-is-easy/note.md),
-  [Português](content/notes/starting-is-easy/note.pt.md),
-  [日本語](content/notes/starting-is-easy/note.ja.md)
+- **The gap between starting and shipping** — [English](content/notes/between-starting-and-shipping/note.md),
+  [Português](content/notes/between-starting-and-shipping/note.pt.md),
+  [日本語](content/notes/between-starting-and-shipping/note.ja.md)
 
 Draft status controls inclusion in the published manifest. It does not make a
 committed Markdown file private in a public repository.
@@ -46,25 +50,27 @@ repository before any audio is published.
 ## Write and publish
 
 Each folder under `content/notes/` contains `note.md`, `note.pt.md`, and
-`note.ja.md`. All three versions share an ID and publication metadata, while
-their titles, summaries, and text are localized.
+`note.ja.md`. These are the localized source files for one note, sharing an ID
+and publication metadata.
 
 - [Writing, local audio review, and publication](docs/publishing.md)
 - [Manifest, alignment, and consumer contract](docs/content-contract.md)
 
 Useful commands, run from the repository root:
 
-| Command                                                         | Purpose                                                                                    |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `npm run notes:validate`                                        | Validate all Markdown and translations without contacting services.                        |
-| `npm run check`                                                 | Run TypeScript, mocked tests, and content validation.                                      |
-| `npm run notes:generate -- --note starting-is-easy --no-upload` | Prepare local audio for this note **after** its three files are marked published.          |
-| `npm run notes:generate -- --upload`                            | Publish assets and reconcile the local public manifest. May incur API and storage charges. |
-| `npm run notes:dispatch`                                        | Notify a configured consumer using `NOTES_COMMIT`; does not generate audio.                |
+| Command                                                                      | Purpose                                                                                    |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `npm run notes:validate`                                                     | Validate all Markdown and translations without contacting services.                        |
+| `npm run check`                                                              | Run TypeScript, mocked tests, and content validation.                                      |
+| `npm run notes:generate -- --note between-starting-and-shipping --no-upload` | Prepare local audio for this note **after** its three files are marked published.          |
+| `npm run notes:generate -- --upload`                                         | Publish assets and reconcile the local public manifest. May incur API and storage charges. |
+| `npm run notes:dispatch`                                                     | Trigger the configured Portfolio Vercel deploy hook; does not generate audio.              |
 
-Generation processes only published notes. The first note is now marked
-published in Markdown; it reaches the public catalog after its audio and
-alignment are prepared and the manifest is published. Uploading locally does not commit or push files.
+Generation processes only published notes. Eleven v3 is the default model, uses
+the audio tags in the source, and accepts up to 5,000 normalized characters per
+block. Longer notes are split at semantic boundaries, assembled from validated
+MP3 frames, and aligned on the real assembled timeline. Uploading locally does
+not commit or push files.
 
 ## Repository contents
 
