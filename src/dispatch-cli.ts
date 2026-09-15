@@ -1,16 +1,16 @@
 import { dispatchFromEnvironment } from './dispatch.js'
 import { logger } from './logger.js'
 
-const dispatchOptions = process.env.NOTES_COMMIT ? { notesCommit: process.env.NOTES_COMMIT } : {}
-
-dispatchFromEnvironment(dispatchOptions)
+dispatchFromEnvironment()
   .then((result) => {
     logger.info(
       { enabled: result.enabled, status: result.status ?? null },
-      'Portfolio dispatch command completed',
+      'Portfolio deploy hook command completed',
     )
     console.log(
-      result.enabled ? `portfolio dispatch sent (${result.status})` : 'portfolio dispatch disabled',
+      result.enabled
+        ? `portfolio deploy hook sent (${result.status})`
+        : 'portfolio deploy hook disabled',
     )
   })
   .catch((error: unknown) => {

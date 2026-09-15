@@ -66,14 +66,11 @@ jobs:
         run: |
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
-      - name: dispatch portfolio notes update
+      - name: trigger portfolio Vercel deploy hook
         if: success()
         env:
-          PORTFOLIO_DISPATCH_TOKEN: ${{ secrets.PORTFOLIO_DISPATCH_TOKEN }}
-          PORTFOLIO_REPOSITORY: ${{ vars.PORTFOLIO_REPOSITORY }}
-        run: |
-          export NOTES_COMMIT="$(git rev-parse HEAD)"
-          npm run notes:dispatch
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: npm run notes:dispatch
 
       - name: preserve completed generation stages
         if: always()

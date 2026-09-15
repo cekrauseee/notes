@@ -119,8 +119,7 @@ and variables → Actions. The portfolio runtime does not need the ElevenLabs ke
 | Variable  | `ELEVENLABS_SPEED`                     | Used by legacy models only; allowed range `0.7`–`1.2`.                              |
 | Variables | `ELEVENLABS_VOICE_ID_EN`, `_PT`, `_JA` | Required native voices for English, Brazilian Portuguese, and Japanese.             |
 | Variable  | `NOTES_BLOB_PREFIX`                    | Optional asset prefix, default `notes`.                                             |
-| Secret    | `PORTFOLIO_DISPATCH_TOKEN`             | Optional existing portfolio notification token.                                     |
-| Variable  | `PORTFOLIO_REPOSITORY`                 | Optional notification target, paired with that token.                               |
+| Secret    | `VERCEL_DEPLOY_HOOK_URL`               | Optional Deploy Hook URL for the Portfolio `main` production build.                 |
 
 The implementation calls the current documented
 [`POST /v1/text-to-speech/{voice_id}/with-timestamps`](https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps)
@@ -163,19 +162,17 @@ it reconciles against the new source revision. There is no force push.
 Manifest-only commits are excluded from the push path filters, preventing a
 generation loop. An unchanged manifest does not create another commit.
 
-## Optional portfolio notification
+## Optional portfolio redeploy
 
-Configure both `PORTFOLIO_DISPATCH_TOKEN` (secret) and `PORTFOLIO_REPOSITORY`
-(variable, for example `cekrauseee/portfolio`), or leave both absent. A fine-grained
-GitHub token needs access to the target repository with `Contents: write` for
-repository dispatch. Keep the token separate from the Blob token.
+Configure `VERCEL_DEPLOY_HOOK_URL` as a secret in the Notes repository when the
+Portfolio should rebuild after a successful publication. Use the Deploy Hook
+for the Portfolio `main` branch. The URL is a credential: do not commit it or
+place it in note content.
 
-After a successful push, the workflow sends `notes-published` with
-`client_payload.notes_commit` containing the pushed HEAD's 40-character lowercase
-SHA. The consumer's workflow must already exist on its default branch. The
-current portfolio validates this event and invokes its existing delivery path;
-its build resolves the configured `NOTES_REF` to a commit. The notification SHA
-is not currently forwarded as a Vercel build override.
+After a successful manifest push, the workflow sends a `POST` request to that
+Deploy Hook. Vercel queues a production build, and the build resolves the
+Portfolio's configured `NOTES_REF` to a commit. No GitHub repository token,
+repository-dispatch event, or commit SHA payload is needed.
 
 In the portfolio build environment, configure:
 
@@ -188,14 +185,14 @@ The portfolio does not need a Blob write token to read public assets. Its existi
 deploy-hook and database configuration still applies. With notification disabled,
 this repository remains usable and consumers can synchronize independently.
 
-To retry only a failed notification, from a checkout of the already-pushed
-revision with the integration configured:
+To retry only a failed redeploy request, from a checkout with the integration
+configured:
 
 ```sh
-NOTES_COMMIT="$(git rev-parse HEAD)" npm run notes:dispatch
+npm run notes:dispatch
 ```
 
-This makes a GitHub request but does not generate or upload audio.
+This makes a Vercel request but does not generate or upload audio.
 
 ## Reuse, failure, and withdrawal
 

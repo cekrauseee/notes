@@ -4,9 +4,9 @@ import test from 'node:test'
 import { dispatchFromEnvironment } from '../src/dispatch.js'
 import type { DispatchFetch } from '../src/dispatch.js'
 
-const commit = 'a'.repeat(40)
+const deployHookUrl = 'https://api.vercel.com/v1/integrations/deploy/prj_test/hook_test'
 
-test('dispatch is disabled without both optional integration values', async () => {
+test('dispatch is disabled without a deploy hook', async () => {
   let calls = 0
   const fetchImpl: DispatchFetch = async () => {
     calls += 1
@@ -17,54 +17,33 @@ test('dispatch is disabled without both optional integration values', async () =
   assert.equal(calls, 0)
 })
 
-test('dispatch requires the token and repository as an all-or-none pair', async () => {
+test('dispatch rejects non-Vercel deploy hook URLs', async () => {
   await assert.rejects(
     dispatchFromEnvironment({
-      env: { PORTFOLIO_DISPATCH_TOKEN: 'secret' },
-      notesCommit: commit,
+      env: { VERCEL_DEPLOY_HOOK_URL: 'https://example.com/hook' },
     }),
-    /must be configured together/,
-  )
-  await assert.rejects(
-    dispatchFromEnvironment({
-      env: { PORTFOLIO_REPOSITORY: 'cekrauseee\/portfolio' },
-      notesCommit: commit,
-    }),
-    /must be configured together/,
+    /HTTPS Vercel deploy hook URL/,
   )
 })
 
-test('dispatch sends the exact receiver request with the committed SHA', async () => {
+test('dispatch sends a POST to the configured Vercel deploy hook', async () => {
   const requests: Array<{ url: string; init: Parameters<DispatchFetch>[1] }> = []
   const fetchImpl: DispatchFetch = async (url, init) => {
     requests.push({ url, init })
     return { ok: true, status: 204, text: async () => '' }
   }
   const result = await dispatchFromEnvironment({
-    env: {
-      PORTFOLIO_DISPATCH_TOKEN: 'test-token',
-      PORTFOLIO_REPOSITORY: 'cekrauseee/portfolio',
-    },
-    notesCommit: commit,
+    env: { VERCEL_DEPLOY_HOOK_URL: deployHookUrl },
     fetchImpl,
   })
   assert.deepEqual(result, { enabled: true, status: 204 })
   assert.equal(requests.length, 1)
   const request = requests[0]!
-  assert.equal(request.url, 'https://api.github.com/repos/cekrauseee/portfolio/dispatches')
-  assert.deepEqual(request.init.headers, {
-    Authorization: 'Bearer test-token',
-    Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-    'Content-Type': 'application/json',
-  })
-  assert.deepEqual(JSON.parse(request.init.body), {
-    event_type: 'notes-published',
-    client_payload: { notes_commit: commit },
-  })
+  assert.equal(request.url, deployHookUrl)
+  assert.deepEqual(request.init, { method: 'POST' })
 })
 
-test('dispatch validates SHA and leaves a failed notification retryable', async () => {
+test('dispatch leaves a failed deploy hook retryable', async () => {
   let calls = 0
   const fetchImpl: DispatchFetch = async () => {
     calls += 1
@@ -72,26 +51,10 @@ test('dispatch validates SHA and leaves a failed notification retryable', async 
   }
   await assert.rejects(
     dispatchFromEnvironment({
-      env: {
-        PORTFOLIO_DISPATCH_TOKEN: 'test-token',
-        PORTFOLIO_REPOSITORY: 'cekrauseee/portfolio',
-      },
-      notesCommit: 'A'.repeat(40),
+      env: { VERCEL_DEPLOY_HOOK_URL: deployHookUrl },
       fetchImpl,
     }),
-    /40-character lowercase/,
-  )
-  assert.equal(calls, 0)
-  await assert.rejects(
-    dispatchFromEnvironment({
-      env: {
-        PORTFOLIO_DISPATCH_TOKEN: 'test-token',
-        PORTFOLIO_REPOSITORY: 'cekrauseee/portfolio',
-      },
-      notesCommit: commit,
-      fetchImpl,
-    }),
-    /HTTP 500: temporary failure/,
+    /Vercel deploy hook failed with HTTP 500: temporary failure/,
   )
   assert.equal(calls, 1)
 })
@@ -103,11 +66,10 @@ test('workflow dispatches only after push and keeps repository write permission 
   )
   assert.match(workflow, /permissions:\n  contents: write/)
   const pushIndex = workflow.indexOf('git push origin "HEAD:${GITHUB_REF_NAME}"')
-  const dispatchIndex = workflow.indexOf('name: dispatch portfolio notes update')
+  const dispatchIndex = workflow.indexOf('name: trigger portfolio Vercel deploy hook')
   assert.ok(pushIndex >= 0 && dispatchIndex > pushIndex)
-  assert.match(workflow, /git rev-parse HEAD/)
-  assert.match(workflow, /PORTFOLIO_DISPATCH_TOKEN/)
-  assert.match(workflow, /PORTFOLIO_REPOSITORY/)
+  assert.match(workflow, /VERCEL_DEPLOY_HOOK_URL/)
+  assert.doesNotMatch(workflow, /PORTFOLIO_DISPATCH_TOKEN|PORTFOLIO_REPOSITORY|NOTES_COMMIT/)
   assert.match(workflow, /actions\/cache\/restore@v5/)
   assert.match(workflow, /actions\/cache\/save@v5/)
   assert.match(workflow, /restore-keys:/)
@@ -124,7 +86,7 @@ test('publication stays on main and never rebases generated output onto newer co
   assert.doesNotMatch(workflow, /git pull --rebase|--force/)
   assert.ok(
     workflow.indexOf('preserve completed generation stages') >
-      workflow.indexOf('dispatch portfolio notes update'),
+      workflow.indexOf('trigger portfolio Vercel deploy hook'),
   )
   assert.match(workflow, /if: always\(\)/)
   assert.match(workflow, /github.run_attempt/)

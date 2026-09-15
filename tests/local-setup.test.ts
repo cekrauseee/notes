@@ -42,14 +42,13 @@ test('local commands load .env, respect exported values and tolerate a missing f
     assert.equal(command(root, 'notes:validate').status, 0)
     await writeFile(
       path.join(root, '.env'),
-      'PORTFOLIO_REPOSITORY=invalid\nPORTFOLIO_DISPATCH_TOKEN=fixture\n',
+      'VERCEL_DEPLOY_HOOK_URL=https://example.com/not-a-vercel-hook\n',
     )
     const loaded = command(root, 'notes:dispatch')
     assert.equal(loaded.status, 1)
-    assert.match(loaded.stderr, /owner\/repository/)
+    assert.match(loaded.stderr, /Vercel deploy hook URL/)
     const overridden = command(root, 'notes:dispatch', [], {
-      PORTFOLIO_REPOSITORY: '',
-      PORTFOLIO_DISPATCH_TOKEN: '',
+      VERCEL_DEPLOY_HOOK_URL: '',
     })
     assert.equal(overridden.status, 0)
     assert.match(overridden.stdout, /disabled/)

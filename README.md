@@ -64,7 +64,7 @@ Useful commands, run from the repository root:
 | `npm run check`                                                              | Run TypeScript, mocked tests, and content validation.                                      |
 | `npm run notes:generate -- --note between-starting-and-shipping --no-upload` | Prepare local audio for this note **after** its three files are marked published.          |
 | `npm run notes:generate -- --upload`                                         | Publish assets and reconcile the local public manifest. May incur API and storage charges. |
-| `npm run notes:dispatch`                                                     | Notify a configured consumer using `NOTES_COMMIT`; does not generate audio.                |
+| `npm run notes:dispatch`                                                     | Trigger the configured Portfolio Vercel deploy hook; does not generate audio.              |
 
 Generation processes only published notes. Eleven v3 is the default model, uses
 the audio tags in the source, and accepts up to 5,000 normalized characters per
