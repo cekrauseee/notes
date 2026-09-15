@@ -1,4 +1,4 @@
-import { head, put } from '@vercel/blob'
+import { BlobNotFoundError, head, put } from '@vercel/blob'
 import type { BlobUploader, SpeechProvider } from './generate.js'
 import { OUTPUT_FORMAT } from './alignment.js'
 import { logger } from './logger.js'
@@ -35,16 +35,24 @@ export function createElevenLabsProvider(
   }
 }
 
-export function createVercelBlobUploader(token: string): BlobUploader {
+type BlobApi = {
+  head: typeof head
+  put: typeof put
+}
+
+export function createVercelBlobUploader(
+  token: string,
+  api: BlobApi = { head, put },
+): BlobUploader {
   if (!token.trim()) throw new Error('BLOB_READ_WRITE_TOKEN is required for Blob upload.')
   const find = async (input: { pathname: string }): Promise<{ url: string } | null> => {
     logger.debug({ pathname: input.pathname }, 'Looking up Blob asset')
     try {
-      const existing = await head(input.pathname, { token })
+      const existing = await api.head(input.pathname, { token })
       logger.debug({ pathname: input.pathname, url: existing.url }, 'Blob asset found')
       return { url: existing.url }
     } catch (error) {
-      if (error instanceof Error && error.name === 'BlobNotFoundError') {
+      if (error instanceof BlobNotFoundError) {
         logger.debug({ pathname: input.pathname }, 'Blob asset not found')
         return null
       }
@@ -75,7 +83,7 @@ export function createVercelBlobUploader(token: string): BlobUploader {
         )
         return existing
       }
-      const blob = await put(input.pathname, input.body, {
+      const blob = await api.put(input.pathname, input.body, {
         access: 'public',
         addRandomSuffix: false,
         allowOverwrite: false,
