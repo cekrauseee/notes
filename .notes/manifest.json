@@ -1,5 +1,48 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-13T22:00:00.000Z",
-  "notes": []
+  "generatedAt": "2026-09-15T20:27:32.502Z",
+  "notes": [
+    {
+      "id": "between-starting-and-shipping",
+      "slug": "between-starting-and-shipping",
+      "status": "published",
+      "date": "2026-09-10",
+      "publishedAt": "2026-09-10T20:20:00.000Z",
+      "locales": {
+        "en": {
+          "markdownSha256": "37cbedd628589f2d082a2e306b0f0b4f3e6949f2fd95d36a685d821e20780625",
+          "spokenTextSha256": "75c79c2bb61435be5f862922d8dd9a62f1e47be2bc85097461722097451d0a73",
+          "generationConfigHash": "b2417a707c479ee4ef738ddfc18a1d3abc105a20d0c8bb0284e798e3d73991b7",
+          "markdownPath": "content/notes/between-starting-and-shipping/note.md",
+          "title": "The gap between starting and shipping",
+          "summary": "A reflection on why personal projects are easy to start but difficult to publish, and what changes when every idea can become a product.",
+          "audioUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/en/b2417a707c479ee4ef738ddfc18a1d3abc105a20d0c8bb0284e798e3d73991b7.mp3",
+          "alignmentUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/en/b2417a707c479ee4ef738ddfc18a1d3abc105a20d0c8bb0284e798e3d73991b7.json",
+          "durationMs": 255870
+        },
+        "pt": {
+          "markdownSha256": "9b94c2c2fb3427711a27fcb447787b319617c843b8b17a6b09f99c69f491741a",
+          "spokenTextSha256": "44b7703c2109cf06ae25e8258acdc048f84274640fa49a913dce340bdb449b38",
+          "generationConfigHash": "bb154bbc57e4764abd84c69ae8dc9972d320981e3f2ea978945da222b3cdd0a6",
+          "markdownPath": "content/notes/between-starting-and-shipping/note.pt.md",
+          "title": "A distância entre começar e publicar",
+          "summary": "Uma reflexão sobre por que projetos pessoais são fáceis de começar, mas difíceis de publicar, e sobre o que acontece quando toda ideia pode virar um produto.",
+          "audioUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/pt/bb154bbc57e4764abd84c69ae8dc9972d320981e3f2ea978945da222b3cdd0a6.mp3",
+          "alignmentUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/pt/bb154bbc57e4764abd84c69ae8dc9972d320981e3f2ea978945da222b3cdd0a6.json",
+          "durationMs": 325094
+        },
+        "ja": {
+          "markdownSha256": "77be7974c60d3d7c95415833de947df87e18a3056b73618929e08e796be82772",
+          "spokenTextSha256": "2ce1161bbfd8076a5eb987b55a527b7c035dbc91325bde30993c85d867377058",
+          "generationConfigHash": "2b165283a238715612a0e65d1e7238799620cade94b60bfcf5ddec173b249745",
+          "markdownPath": "content/notes/between-starting-and-shipping/note.ja.md",
+          "title": "個人開発で、公開までたどり着く難しさ",
+          "summary": "個人開発を始めるのは簡単でも、公開まで進めるのが難しい理由と、すべてのアイデアをプロダクトにしようとすることについて。",
+          "audioUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/ja/2b165283a238715612a0e65d1e7238799620cade94b60bfcf5ddec173b249745.mp3",
+          "alignmentUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/ja/2b165283a238715612a0e65d1e7238799620cade94b60bfcf5ddec173b249745.json",
+          "durationMs": 406910
+        }
+      }
+    }
+  ]
 }
