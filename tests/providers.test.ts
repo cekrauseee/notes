@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createElevenLabsProvider } from '../src/providers.js'
+import { BlobNotFoundError, put } from '@vercel/blob'
+import { createElevenLabsProvider, createVercelBlobUploader } from '../src/providers.js'
 import { readConfig } from '../src/config.js'
 
 // Updated for the ElevenLabs migration; intentionally not executed during migration.
@@ -101,4 +102,28 @@ test('retryable ElevenLabs failure is not retried', async () => {
     /HTTP 429/,
   )
   assert.equal(calls, 1)
+})
+
+test('missing Blob assets are treated as new uploads', async () => {
+  let uploads = 0
+  const uploader = createVercelBlobUploader('fixture-token', {
+    head: async () => {
+      throw new BlobNotFoundError()
+    },
+    put: (async () => {
+      uploads += 1
+      return { url: 'https://example.public.blob.vercel-storage.com/asset' }
+    }) as unknown as typeof put,
+  })
+
+  assert.deepEqual(await uploader.find?.({ pathname: 'notes/test/audio.mp3' }), null)
+  assert.deepEqual(
+    await uploader.upload({
+      pathname: 'notes/test/audio.mp3',
+      body: Buffer.from('audio'),
+      contentType: 'audio/mpeg',
+    }),
+    { url: 'https://example.public.blob.vercel-storage.com/asset' },
+  )
+  assert.equal(uploads, 1)
 })
