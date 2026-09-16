@@ -1,5 +1,6 @@
 ---
 slug: notes
+portfolioIndex: 6
 name: cekrauseee/notes
 repositoryUrl: https://github.com/cekrauseee/notes
 description: a place for thoughts, questions, and ideas still taking shape.
