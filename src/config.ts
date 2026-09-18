@@ -38,13 +38,17 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): EnvironmentCon
   const speed = Number(env.ELEVENLABS_SPEED?.trim() || '0.95')
   if (model !== 'eleven_v3' && (!Number.isFinite(speed) || speed < 0.7 || speed > 1.2))
     throw new Error('ELEVENLABS_SPEED must be between 0.7 and 1.2.')
+  const englishVoice = env.ELEVENLABS_VOICE_ID_EN?.trim() || ''
+  const portugueseVoice = env.ELEVENLABS_VOICE_ID_PT?.trim() || ''
   return {
     elevenLabsApiKey: env.ELEVENLABS_API_KEY?.trim() || undefined,
     blobToken: env.BLOB_READ_WRITE_TOKEN?.trim() || undefined,
     model: model as SpeechModel,
     voices: {
-      en: env.ELEVENLABS_VOICE_ID_EN?.trim() || '',
-      pt: env.ELEVENLABS_VOICE_ID_PT?.trim() || '',
+      en: englishVoice,
+      fr: env.ELEVENLABS_VOICE_ID_FR?.trim() || englishVoice,
+      es: env.ELEVENLABS_VOICE_ID_ES?.trim() || portugueseVoice,
+      pt: portugueseVoice,
       ja: env.ELEVENLABS_VOICE_ID_JA?.trim() || '',
     },
     voiceSettings:

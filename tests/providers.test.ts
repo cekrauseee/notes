@@ -9,6 +9,8 @@ test('one ElevenLabs request includes voice settings and returns audio with time
   const config = readConfig({
     ELEVENLABS_MODEL_ID: 'eleven_multilingual_v2',
     ELEVENLABS_VOICE_ID_EN: 'voice-id',
+    ELEVENLABS_VOICE_ID_FR: 'voice-id-fr',
+    ELEVENLABS_VOICE_ID_ES: 'voice-id-es',
     ELEVENLABS_VOICE_ID_PT: 'voice-id-pt',
     ELEVENLABS_VOICE_ID_JA: 'voice-id-ja',
   })
@@ -84,6 +86,8 @@ test('retryable ElevenLabs failure is not retried', async () => {
   let calls = 0
   const config = readConfig({
     ELEVENLABS_VOICE_ID_EN: 'voice-id',
+    ELEVENLABS_VOICE_ID_FR: 'voice-id-fr',
+    ELEVENLABS_VOICE_ID_ES: 'voice-id-es',
     ELEVENLABS_VOICE_ID_PT: 'voice-id-pt',
     ELEVENLABS_VOICE_ID_JA: 'voice-id-ja',
   })

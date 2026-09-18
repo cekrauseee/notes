@@ -1,4 +1,4 @@
-export const LOCALES = ['en', 'pt', 'ja'] as const
+export const LOCALES = ['en', 'fr', 'es', 'pt', 'ja'] as const
 export type Locale = (typeof LOCALES)[number]
 
 export const NOTE_STATUSES = ['draft', 'published'] as const

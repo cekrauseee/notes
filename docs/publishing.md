@@ -10,6 +10,8 @@ Create a directory with a stable lowercase, hyphenated ID:
 ```text
 content/notes/a-new-thought/
   note.md
+  note.fr.md
+  note.es.md
   note.pt.md
   note.ja.md
 ```
@@ -29,8 +31,9 @@ publishedAt: null
 The Markdown body goes here.
 ```
 
-Use `locale: pt` and `locale: ja` in the corresponding translations. The directory
-name and every `id` must match. All three files are required, even for drafts.
+Use `locale: fr`, `locale: es`, `locale: pt`, and `locale: ja` in the corresponding
+translations. The directory name and every `id` must match. All five files are
+required, even for drafts.
 `id`, `status`, `date`, and `publishedAt` must agree across languages. Dates are
 calendar dates; use quoted ISO timestamps with a timezone for `publishedAt`.
 
@@ -41,7 +44,7 @@ link destinations are not. Code is read literally and image alt text is narrated
 Raw HTML is rejected. The text and its translations should be reviewed before
 preparing narration.
 
-`draft` requires `publishedAt: null`. To publish, set all three files to
+`draft` requires `publishedAt: null`. To publish, set all five files to
 `status: published` and the same non-null `publishedAt`, for example
 `"2026-09-10T12:00:00.000Z"`. A future timestamp is not a publication schedule:
 status determines eligibility, and published notes are processed immediately.
@@ -49,12 +52,14 @@ status determines eligibility, and published notes are processed immediately.
 ## Prepare and listen locally
 
 After following the [local setup](../README.md#local-setup), set
-`ELEVENLABS_API_KEY` and the three voice variables `ELEVENLABS_VOICE_ID_EN`,
-`ELEVENLABS_VOICE_ID_PT`, and `ELEVENLABS_VOICE_ID_JA` in `.env`. Choose a female
-native voice for each language and copy each Voice ID. There is no shared default.
-Do not commit `.env`. No ffmpeg installation is needed.
+`ELEVENLABS_API_KEY` and the voice variables `ELEVENLABS_VOICE_ID_EN`,
+`ELEVENLABS_VOICE_ID_PT`, and `ELEVENLABS_VOICE_ID_JA` in `.env`. French
+reuses the English voice by default and Spanish reuses the Portuguese voice;
+set `ELEVENLABS_VOICE_ID_FR` or `ELEVENLABS_VOICE_ID_ES` to override either
+default. Choose a female native voice for each configured language and copy its
+Voice ID. Do not commit `.env`. No ffmpeg installation is needed.
 
-For a local preview, change the selected note's three files to published in your
+For a local preview, change the selected note's five files to published in your
 working tree, then run:
 
 ```sh
@@ -110,16 +115,17 @@ variable changes do not create a Git push event.
 Configure these settings in the **notes** repository under Settings → Secrets
 and variables → Actions. The portfolio runtime does not need the ElevenLabs key.
 
-| Kind      | Name                                   | Purpose                                                                             |
-| --------- | -------------------------------------- | ----------------------------------------------------------------------------------- |
-| Variable  | `NOTES_PUBLICATION_ENABLED`            | Set to `true` only when ready to enable paid publication.                           |
-| Secret    | `ELEVENLABS_API_KEY`                   | ElevenLabs API key with Text to Speech access and available credits.                |
-| Secret    | `BLOB_READ_WRITE_TOKEN`                | Read/write access to the public Vercel Blob store.                                  |
-| Variable  | `ELEVENLABS_MODEL_ID`                  | Optional; defaults to `eleven_v3`; supports inline audio tags and 5,000 characters. |
-| Variable  | `ELEVENLABS_SPEED`                     | Used by legacy models only; allowed range `0.7`–`1.2`.                              |
-| Variables | `ELEVENLABS_VOICE_ID_EN`, `_PT`, `_JA` | Required native voices for English, Brazilian Portuguese, and Japanese.             |
-| Variable  | `NOTES_BLOB_PREFIX`                    | Optional asset prefix, default `notes`.                                             |
-| Secret    | `VERCEL_DEPLOY_HOOK_URL`               | Optional Deploy Hook URL for the Portfolio `main` production build.                 |
+| Kind      | Name                                   | Purpose                                                                                                   |
+| --------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Variable  | `NOTES_PUBLICATION_ENABLED`            | Set to `true` only when ready to enable paid publication.                                                 |
+| Secret    | `ELEVENLABS_API_KEY`                   | ElevenLabs API key with Text to Speech access and available credits.                                      |
+| Secret    | `BLOB_READ_WRITE_TOKEN`                | Read/write access to the public Vercel Blob store.                                                        |
+| Variable  | `ELEVENLABS_MODEL_ID`                  | Optional; defaults to `eleven_v3`; supports inline audio tags and 5,000 characters.                       |
+| Variable  | `ELEVENLABS_SPEED`                     | Used by legacy models only; allowed range `0.7`–`1.2`.                                                    |
+| Variables | `ELEVENLABS_VOICE_ID_EN`, `_PT`, `_JA` | Required voices for English, Brazilian Portuguese, and Japanese. French and Spanish use EN/PT by default. |
+| Variables | `ELEVENLABS_VOICE_ID_FR`, `_ES`        | Optional overrides for French and Spanish narration voices.                                               |
+| Variable  | `NOTES_BLOB_PREFIX`                    | Optional asset prefix, default `notes`.                                                                   |
+| Secret    | `VERCEL_DEPLOY_HOOK_URL`               | Optional Deploy Hook URL for the Portfolio `main` production build.                                       |
 
 The implementation calls the current documented
 [`POST /v1/text-to-speech/{voice_id}/with-timestamps`](https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps)

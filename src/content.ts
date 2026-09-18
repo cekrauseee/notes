@@ -8,6 +8,8 @@ import { logger } from './logger.js'
 
 const FILES: Record<Locale, string> = {
   en: 'note.md',
+  fr: 'note.fr.md',
+  es: 'note.es.md',
   pt: 'note.pt.md',
   ja: 'note.ja.md',
 }

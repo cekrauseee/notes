@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-15T20:27:32.502Z",
+  "generatedAt": "2026-09-18T13:17:18.603Z",
   "notes": [
     {
       "id": "between-starting-and-shipping",
@@ -19,6 +19,28 @@
           "audioUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/en/b2417a707c479ee4ef738ddfc18a1d3abc105a20d0c8bb0284e798e3d73991b7.mp3",
           "alignmentUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/en/b2417a707c479ee4ef738ddfc18a1d3abc105a20d0c8bb0284e798e3d73991b7.json",
           "durationMs": 255870
+        },
+        "fr": {
+          "markdownSha256": "088e76c98281e3416c0ca2a2fb0dcc16ad2892c0b8749384829258d6a3411263",
+          "spokenTextSha256": "da2f00df460ef77286f8686dc68325feb916ebf484c6243a89dd14de3b4c8a33",
+          "generationConfigHash": "0f1c3cf0b1a1ec3c9eabee3b040db26d24a56bd5203ab510bb08d4c9db3ea3f8",
+          "markdownPath": "content/notes/between-starting-and-shipping/note.fr.md",
+          "title": "L’écart entre commencer et mettre en ligne",
+          "summary": "Une réflexion sur la facilité de commencer un projet personnel, la difficulté de le publier et ce qui change quand chaque idée peut devenir un produit.",
+          "audioUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/fr/0f1c3cf0b1a1ec3c9eabee3b040db26d24a56bd5203ab510bb08d4c9db3ea3f8.mp3",
+          "alignmentUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/fr/0f1c3cf0b1a1ec3c9eabee3b040db26d24a56bd5203ab510bb08d4c9db3ea3f8.json",
+          "durationMs": 318642
+        },
+        "es": {
+          "markdownSha256": "8df2793eeb68e6433e365c8008c8159ad9c4c2160bd8d48e634dc1efc3f475ba",
+          "spokenTextSha256": "89bec6a981f5b8cfcdcabb3441fe97f4a9d0365aa103783f15213b8a16707fa1",
+          "generationConfigHash": "e6833154925340aea2f61d169fd9d6ce77712a7d0f2fba4dba64949edb3e8b7c",
+          "markdownPath": "content/notes/between-starting-and-shipping/note.es.md",
+          "title": "La distancia entre empezar y publicar",
+          "summary": "Una reflexión sobre por qué es fácil empezar proyectos personales pero difícil publicarlos, y sobre lo que cambia cuando cualquier idea puede convertirse en un producto.",
+          "audioUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/es/e6833154925340aea2f61d169fd9d6ce77712a7d0f2fba4dba64949edb3e8b7c.mp3",
+          "alignmentUrl": "https://0qlulaypow37vcfp.public.blob.vercel-storage.com/notes/between-starting-and-shipping/es/e6833154925340aea2f61d169fd9d6ce77712a7d0f2fba4dba64949edb3e8b7c.json",
+          "durationMs": 307436
         },
         "pt": {
           "markdownSha256": "9b94c2c2fb3427711a27fcb447787b319617c843b8b17a6b09f99c69f491741a",

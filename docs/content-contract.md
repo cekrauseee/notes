@@ -9,8 +9,8 @@ input instead of assuming that a successful HTTP response contains usable data.
 
 The root contains `schemaVersion: 1`, `generatedAt`, and `notes`. Each entry has
 `id`, `slug`, `status: published`, `date`, `publishedAt`, and `locales`. The slug
-currently equals the stable ID. Published entries contain all of `en`, `pt`, and
-`ja`; drafts are absent.
+currently equals the stable ID. Published entries contain all of `en`, `fr`, `es`,
+`pt`, and `ja`; drafts are absent.
 
 Each locale records:
 
