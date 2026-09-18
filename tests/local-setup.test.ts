@@ -26,7 +26,7 @@ function command(root: string, script: string, args: string[] = [], env: NodeJS.
 
 async function source(root: string, published = false) {
   await mkdir(path.join(root, 'content/notes/test-note'), { recursive: true })
-  for (const locale of ['en', 'pt', 'ja']) {
+  for (const locale of ['en', 'fr', 'es', 'pt', 'ja']) {
     const filename = locale === 'en' ? 'note.md' : `note.${locale}.md`
     await writeFile(
       path.join(root, 'content/notes/test-note', filename),
@@ -64,6 +64,8 @@ test('local commands load .env, respect exported values and tolerate a missing f
 test('generation config defaults to v3 Natural narration and preserves legacy controls', () => {
   const defaults = readConfig({
     ELEVENLABS_VOICE_ID_EN: 'english',
+    ELEVENLABS_VOICE_ID_FR: 'french',
+    ELEVENLABS_VOICE_ID_ES: 'spanish',
     ELEVENLABS_VOICE_ID_PT: 'brazilian',
     ELEVENLABS_VOICE_ID_JA: 'japanese',
   })
@@ -71,6 +73,8 @@ test('generation config defaults to v3 Natural narration and preserves legacy co
   assert.deepEqual(defaults.voiceSettings, { stability: 0.5 })
   assert.deepEqual(defaults.voices, {
     en: 'english',
+    fr: 'french',
+    es: 'spanish',
     pt: 'brazilian',
     ja: 'japanese',
   })
@@ -99,7 +103,14 @@ test('generation config defaults to v3 Natural narration and preserves legacy co
       ELEVENLABS_VOICE_ID: 'obsolete-default',
       ELEVENLABS_VOICE_ID_PT: 'brazilian',
     }).voices,
-    { en: '', pt: 'brazilian', ja: '' },
+    { en: '', fr: '', es: 'brazilian', pt: 'brazilian', ja: '' },
+  )
+  assert.deepEqual(
+    readConfig({
+      ELEVENLABS_VOICE_ID_EN: 'english',
+      ELEVENLABS_VOICE_ID_PT: 'brazilian',
+    }).voices,
+    { en: 'english', fr: 'english', es: 'brazilian', pt: 'brazilian', ja: '' },
   )
   assert.throws(
     () => readConfig({ ELEVENLABS_MODEL_ID: 'eleven_multilingual_v2', ELEVENLABS_SPEED: '2' }),
@@ -153,7 +164,7 @@ test('published manifest reuse does not require ElevenLabs credentials', async (
       assert.equal(result.status, 0, result.stderr)
       const report = JSON.parse(result.stdout)
       assert.equal(report.generated.length, 0)
-      assert.equal(report.reused.length, 3)
+      assert.equal(report.reused.length, 5)
     }
   } finally {
     await rm(root, { recursive: true, force: true })

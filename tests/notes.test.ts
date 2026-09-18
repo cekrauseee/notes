@@ -19,6 +19,8 @@ import { LOCALES, type Locale, type Note, type NoteLocale } from '../src/types.j
 
 const config = readConfig({
   ELEVENLABS_VOICE_ID_EN: 'fixture',
+  ELEVENLABS_VOICE_ID_FR: 'fixture-fr',
+  ELEVENLABS_VOICE_ID_ES: 'fixture-es',
   ELEVENLABS_VOICE_ID_PT: 'fixture-pt',
   ELEVENLABS_VOICE_ID_JA: 'fixture-ja',
 })
@@ -32,6 +34,8 @@ function note(root: string): Note {
     LOCALES.map((locale) => {
       const spokenText = {
         en: 'Hello world.',
+        fr: 'Bonjour le monde.',
+        es: 'Hola mundo.',
         pt: 'Olá mundo.',
         ja: '考えを話す。',
       }[locale]
@@ -172,15 +176,17 @@ test('content validation rejects missing translations', async () => {
       path.join(root, 'content/notes/broken/note.md'),
       '---\nid: broken\nstatus: draft\ndate: 2026-09-10\ntitle: broken\nsummary: broken\nlocale: en\npublishedAt: null\n---\n\nText\n',
     )
-    await assert.rejects(readNotes(root), /missing note\.pt\.md/)
+    await assert.rejects(readNotes(root), /missing note\.fr\.md/)
   } finally {
     await rm(root, { recursive: true, force: true })
   }
 })
 
-test('character timestamps map words to UTF-16 source spans in all three languages', () => {
+test('character timestamps map words to UTF-16 source spans in all five languages', () => {
   for (const [locale, text] of [
     ['en', 'Hi 😀 world.'],
+    ['fr', 'Bonjour le monde.'],
+    ['es', 'Hola mundo.'],
     ['pt', 'Olá mundo.'],
     ['ja', '考えを話す。'],
   ] as const) {
@@ -305,10 +311,12 @@ test('generation identity changes when only an audio tag changes', () => {
 
 test('v3 segmentation includes audio tags and keeps each request within the limit', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'notes-v3-limit-'))
-  const requests = { en: [], pt: [], ja: [] } as Record<Locale, string[]>
+  const requests = { en: [], fr: [], es: [], pt: [], ja: [] } as Record<Locale, string[]>
   const v3Config = readConfig({
     ELEVENLABS_MODEL_ID: 'eleven_v3',
     ELEVENLABS_VOICE_ID_EN: 'fixture',
+    ELEVENLABS_VOICE_ID_FR: 'fixture-fr',
+    ELEVENLABS_VOICE_ID_ES: 'fixture-es',
     ELEVENLABS_VOICE_ID_PT: 'fixture-pt',
     ELEVENLABS_VOICE_ID_JA: 'fixture-ja',
   })
@@ -403,7 +411,7 @@ test('segmented generation resumes completed blocks without repeating paid calls
 
 test('failed locale stops once and subsequent runs reuse completed generations', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'notes-generate-'))
-  const calls = { en: 0, pt: 0, ja: 0 }
+  const calls = { en: 0, fr: 0, es: 0, pt: 0, ja: 0 }
   let fail = true
   const provider: SpeechProvider = {
     async generateSpeech(input) {
@@ -424,11 +432,11 @@ test('failed locale stops once and subsequent runs reuse completed generations',
   }
   try {
     await assert.rejects(generateNotes(options), /fixture\/ja.*no automatic retry/)
-    assert.deepEqual(calls, { en: 1, pt: 1, ja: 1 })
+    assert.deepEqual(calls, { en: 1, fr: 1, es: 1, pt: 1, ja: 1 })
     fail = false
     const resumed = await generateNotes(options)
-    assert.deepEqual(resumed.recovered, ['fixture/en', 'fixture/pt'])
-    assert.deepEqual(calls, { en: 1, pt: 1, ja: 2 })
+    assert.deepEqual(resumed.recovered, ['fixture/en', 'fixture/fr', 'fixture/es', 'fixture/pt'])
+    assert.deepEqual(calls, { en: 1, fr: 1, es: 1, pt: 1, ja: 2 })
     const directory = path.join(
       root,
       '.notes/generated/fixture/en',
@@ -482,15 +490,15 @@ test('upload failures keep local results and metadata edits reuse published asse
     await assert.rejects(generateNotes(options), /upload failed/)
     fail = false
     const result = await generateNotes(options)
-    assert.equal(calls, 3)
+    assert.equal(calls, 5)
     validateManifest(result.manifest)
     current.locales.en.title = 'New title'
     const reused = await generateNotes({
       ...options,
       manifest: result.manifest,
     })
-    assert.equal(calls, 3)
-    assert.equal(reused.reused.length, 3)
+    assert.equal(calls, 5)
+    assert.equal(reused.reused.length, 5)
     assert.equal(reused.manifest.notes[0]?.locales.en.title, 'New title')
     assert.deepEqual(
       (

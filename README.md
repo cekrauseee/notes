@@ -1,7 +1,7 @@
 # notes
 
 A place for thoughts, questions, and things I am still figuring out, written in
-English, Brazilian Portuguese, and Japanese. The Markdown lives here independently
+English, French, Spanish, Brazilian Portuguese, and Japanese. The Markdown lives here independently
 of the portfolio that presents it.
 
 Each note has one Markdown source per language. Eleven v3 audio tags remain in
@@ -15,6 +15,8 @@ never generates new audio.
 The current collection contains one note, marked for publication:
 
 - **The gap between starting and shipping** — [English](content/notes/between-starting-and-shipping/note.md),
+  [Français](content/notes/between-starting-and-shipping/note.fr.md),
+  [Español](content/notes/between-starting-and-shipping/note.es.md),
   [Português](content/notes/between-starting-and-shipping/note.pt.md),
   [日本語](content/notes/between-starting-and-shipping/note.ja.md)
 
@@ -38,9 +40,12 @@ The `notes:*` commands load `.env` from the repository root. Exported environmen
 variables take precedence. An absent `.env` is allowed, so CI can use secrets
 injected by GitHub Actions. Credentials are not needed for `npm run check`.
 
-[`.env.example`](.env.example) lists the settings. An ElevenLabs API key and a separate Voice ID for each language are needed
-for new narration; a Blob token is needed for upload and remote
-asset recovery. The optional portfolio notification is disabled by default.
+[`.env.example`](.env.example) lists the settings. An ElevenLabs API key and Voice IDs for English,
+Portuguese, and Japanese are needed for new narration. French reuses the English
+voice by default and Spanish reuses the Portuguese voice; set
+`ELEVENLABS_VOICE_ID_FR` or `ELEVENLABS_VOICE_ID_ES` to override either default.
+A Blob token is needed for upload and remote asset recovery. The optional portfolio
+notification is disabled by default.
 
 GitHub audio publication starts disabled. Configure the service credentials and
 set the Actions variable `NOTES_PUBLICATION_ENABLED=true` only when ready for
@@ -49,8 +54,8 @@ repository before any audio is published.
 
 ## Write and publish
 
-Each folder under `content/notes/` contains `note.md`, `note.pt.md`, and
-`note.ja.md`. These are the localized source files for one note, sharing an ID
+Each folder under `content/notes/` contains `note.md`, `note.fr.md`, `note.es.md`,
+`note.pt.md`, and `note.ja.md`. These are the localized source files for one note, sharing an ID
 and publication metadata.
 
 - [Writing, local audio review, and publication](docs/publishing.md)
@@ -62,7 +67,7 @@ Useful commands, run from the repository root:
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `npm run notes:validate`                                                     | Validate all Markdown and translations without contacting services.                        |
 | `npm run check`                                                              | Run TypeScript, mocked tests, and content validation.                                      |
-| `npm run notes:generate -- --note between-starting-and-shipping --no-upload` | Prepare local audio for this note **after** its three files are marked published.          |
+| `npm run notes:generate -- --note between-starting-and-shipping --no-upload` | Prepare local audio for this note **after** its five files are marked published.           |
 | `npm run notes:generate -- --upload`                                         | Publish assets and reconcile the local public manifest. May incur API and storage charges. |
 | `npm run notes:dispatch`                                                     | Trigger the configured Portfolio Vercel deploy hook; does not generate audio.              |
 
@@ -91,6 +96,6 @@ these files and serves them locally after `npm run notes:sync -- --mode=developm
 
 Local checks use mocked providers. They do not establish real voice quality,
 word alignment quality, Blob permissions, or GitHub workflow permissions.
-Before the first public release, generate and listen to one note in all three
-languages, verify the uploaded assets, and check synchronized playback in the
+Before the first public release, configure native voices for all five languages,
+generate and listen to one note in each language, verify the uploaded assets, and check synchronized playback in the
 consumer. No live service validation is implied by a passing test suite.

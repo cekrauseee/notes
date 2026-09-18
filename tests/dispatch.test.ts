@@ -69,6 +69,8 @@ test('workflow dispatches only after push and keeps repository write permission 
   const dispatchIndex = workflow.indexOf('name: trigger portfolio Vercel deploy hook')
   assert.ok(pushIndex >= 0 && dispatchIndex > pushIndex)
   assert.match(workflow, /VERCEL_DEPLOY_HOOK_URL/)
+  assert.match(workflow, /ELEVENLABS_VOICE_ID_FR/)
+  assert.match(workflow, /ELEVENLABS_VOICE_ID_ES/)
   assert.doesNotMatch(workflow, /PORTFOLIO_DISPATCH_TOKEN|PORTFOLIO_REPOSITORY|NOTES_COMMIT/)
   assert.match(workflow, /actions\/cache\/restore@v5/)
   assert.match(workflow, /actions\/cache\/save@v5/)
